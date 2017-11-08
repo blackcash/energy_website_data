@@ -25,7 +25,11 @@ value="486"憶聲
 value="200"環球瑞寶
 value="29"聲寶
 '''
-cid2='280'   # 新視代
+import requests
+from bs4 import BeautifulSoup
+from bmpdownload import BmpDownload
+import urllib.parse
+cid2='280'  # 新視代
 p0 = '0'
 pageno = 1
 url = 'http://www.energylabel.org.tw/purchasing/psearch/upt.aspx'
@@ -37,6 +41,8 @@ pages = bs.select('.Paging')
 spans = pages[0].select('span')
 print (spans[1].text)
 page_max = int(spans[1].text)
+#download = BmpDownload()
+f = open(cid2+'energy.csv','w')
 for page_num in range(1,page_max+1):
     pageno = page_num
     url = 'http://www.energylabel.org.tw/purchasing/psearch/upt.aspx'
@@ -57,4 +63,19 @@ for page_num in range(1,page_max+1):
         data=''
         for index in range(0,len(xss)):
             data = data+xss[index].text+","
-        print(data)
+        #print(data)
+        f.write(data+'\n')
+        btns = bs.find_all('iframe')
+        print(btns[0]['src'])
+        img_url = btns[0]['src']
+        res = requests.get(img_url)
+        res.encoding = 'big5'
+        bs = BeautifulSoup(res.text,'lxml')
+        imgas = bs.select('a')
+        for imga in imgas:
+            url= 'http://61.219.118.186/energylbapply/'+urllib.parse.quote(imga['href'])
+            file = imga['href'].split('/')[-1]
+            print(url,file,type(file))
+            download.setUrlAndFilename(url,file)
+            download.download()
+f.close()
